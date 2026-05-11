@@ -1,0 +1,23 @@
+export const REQUIRED_ENV_KEYS = [
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "DATABASE_URL"
+] as const;
+
+export const OPTIONAL_ENV_KEYS = [
+  "APP_NAME",
+  "APP_ENV",
+  "PORT",
+  "NEXT_PUBLIC_APP_URL",
+  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "SUPABASE_SECRET_KEY",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "DIRECT_URL",
+  "CURRENCY_CODE",
+  "EXPIRY_SOON_DAYS",
+  "RATE_LIMIT_WINDOW_MS",
+  "RATE_LIMIT_MAX_REQUESTS"
+] as const;
+
+export type RequiredEnvKey = (typeof REQUIRED_ENV_KEYS)[number];
+export type OptionalEnvKey = (typeof OPTIONAL_ENV_KEYS)[number];

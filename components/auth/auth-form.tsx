@@ -401,15 +401,27 @@ export function ResetPasswordForm() {
     const description = searchParams.get("error_description");
 
     if (redirectError) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError(description ? decodeURIComponent(description) : redirectError);
       setLoading(false);
       return;
     }
 
     const supabase = createClient();
+
+    // Check if a valid session is already present (from Invite link or Magic link)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setIsReady(true);
+        setLoading(false);
+      } else {
+        setLoading(false);
+      }
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event) => {
-        if (event === "PASSWORD_RECOVERY") {
+      (event, session) => {
+        if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN" || session) {
           setIsReady(true);
           setLoading(false);
         }
@@ -436,15 +448,16 @@ export function ResetPasswordForm() {
         return;
       }
 
-      setMessage("Password successfully updated. Redirecting to login...");
+      setMessage("Password successfully set. Redirecting to your workspace...");
+      const nextDest = searchParams.get("next") || APP_HOME;
       window.setTimeout(() => {
-        router.replace("/auth/login");
+        router.replace(nextDest);
       }, 1400);
     } catch (authError) {
       setError(
         authError instanceof Error
           ? authError.message
-          : "Unable to reset password. Please try again or request a new recovery email."
+          : "Unable to save password. Please try again or request a new link."
       );
     } finally {
       setLoading(false);
@@ -465,9 +478,9 @@ export function ResetPasswordForm() {
         </Link>
 
         <div className="mt-auto max-w-md pb-8">
-          <p className="text-4xl font-semibold leading-tight">Reset your password</p>
+          <p className="text-4xl font-semibold leading-tight">Set or reset your password</p>
           <p className="mt-4 text-base leading-7 text-[var(--muted)]">
-            Create a new password for your account after verifying your recovery link.
+            Create a secure password for your account to continue accessing your gym workspace.
           </p>
         </div>
       </section>
@@ -485,13 +498,13 @@ export function ResetPasswordForm() {
 
           <div className="rounded-md border border-[var(--border)] bg-[var(--panel)] p-6 shadow-sm">
             <div>
-              <h1 className="text-2xl font-semibold">Reset password</h1>
+              <h1 className="text-2xl font-semibold">Set password</h1>
               <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
                 {loading
-                  ? "Validating recovery link..."
+                  ? "Validating secure link..."
                   : isReady
-                  ? "Enter a new password to complete the reset process."
-                  : "Your recovery link must be validated before you can set a new password."}
+                  ? "Enter a secure password to complete your account setup."
+                  : "Your secure link must be validated before you can set a password."}
               </p>
             </div>
 
@@ -530,7 +543,7 @@ export function ResetPasswordForm() {
                 className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-[var(--primary)] px-4 text-sm font-medium text-white transition hover:bg-[#0f6853] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? <Loader2 size={17} className="animate-spin" aria-hidden="true" /> : null}
-                Set new password
+                Set password
               </button>
             </form>
 

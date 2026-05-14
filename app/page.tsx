@@ -1,7 +1,10 @@
 import { Activity, Database, Dumbbell, KeyRound, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
+import { ClientAuthRedirect } from "@/components/auth/client-auth-redirect";
 import { getEnvStatus } from "@/lib/config/env-status";
+import { createClient } from "@/lib/supabase/server";
 
 const phaseItems = [
   "Project foundation",
@@ -12,12 +15,32 @@ const phaseItems = [
   "Analytics and deployment"
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from("users")
+      .select("onboarding_completed")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile && !profile.onboarding_completed) {
+      redirect("/auth/reset-password?next=/onboarding");
+    } else {
+      redirect("/dashboard");
+    }
+  }
+
   const envStatus = getEnvStatus();
   const configuredCount = envStatus.filter((item) => item.configured).length;
 
   return (
     <main className="min-h-screen">
+      <ClientAuthRedirect />
       <section className="border-b border-[var(--border)] bg-[var(--panel)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
           <div className="flex items-center gap-3">

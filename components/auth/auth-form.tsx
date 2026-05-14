@@ -24,6 +24,52 @@ export function AuthForm({ mode }: AuthFormProps) {
   const isSignup = mode === "signup";
   const nextPath = searchParams.get("next") || APP_HOME;
 
+  useEffect(() => {
+    // If we land on the auth page but already have a session (e.g. from an invite/magic link redirect)
+    // auto-route the user to the correct destination.
+    const supabase = createClient();
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        supabase
+          .from("users")
+          .select("onboarding_completed")
+          .eq("id", session.user.id)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data && !data.onboarding_completed) {
+              router.replace(`/auth/reset-password?next=${nextPath}`);
+            } else {
+              router.replace(nextPath);
+            }
+          });
+      }
+    });
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session && (event === "SIGNED_IN" || event === "PASSWORD_RECOVERY")) {
+        supabase
+          .from("users")
+          .select("onboarding_completed")
+          .eq("id", session.user.id)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data && !data.onboarding_completed) {
+              router.replace(`/auth/reset-password?next=${nextPath}`);
+            } else {
+              router.replace(nextPath);
+            }
+          });
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [router, searchParams, nextPath]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);

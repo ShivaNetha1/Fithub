@@ -29,7 +29,7 @@ export default async function HomePage() {
       .maybeSingle();
 
     if (profile && !profile.onboarding_completed) {
-      redirect("/auth/reset-password?next=/onboarding");
+      redirect("/onboarding");
     } else {
       redirect("/dashboard");
     }

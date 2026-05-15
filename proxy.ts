@@ -1,7 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { APP_HOME, isAuthRoute, isPublicRoute, LOGIN_PATH } from "@/lib/auth/paths";
+import {
+  APP_HOME,
+  isAuthRoute,
+  isPublicRoute,
+  LOGIN_PATH,
+  ONBOARDING_PATH
+} from "@/lib/auth/paths";
 
 function hasSupabaseConfig() {
   return Boolean(
@@ -49,7 +55,14 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (user && isAuthRoute(pathname)) {
-    return NextResponse.redirect(new URL(APP_HOME, request.url));
+    const { data: profile } = await supabase
+      .from("users")
+      .select("onboarding_completed")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const destination = profile?.onboarding_completed ? APP_HOME : ONBOARDING_PATH;
+    return NextResponse.redirect(new URL(destination, request.url));
   }
 
   if (!user && !isPublicRoute(pathname) && !isAuthRoute(pathname)) {

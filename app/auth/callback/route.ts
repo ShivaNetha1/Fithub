@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { APP_HOME } from "@/lib/auth/paths";
+import { APP_HOME, LOGIN_PATH, ONBOARDING_PATH } from "@/lib/auth/paths";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -23,14 +23,23 @@ export async function GET(request: NextRequest) {
           .eq("id", user.id)
           .maybeSingle();
 
-        // If it's an invite or the user hasn't onboarded, force password setup
-        if (type === "invite" || (profile && !profile.onboarding_completed)) {
+        if (type === "invite") {
           return NextResponse.redirect(
             new URL("/auth/reset-password?next=/onboarding", request.url)
           );
         }
+
+        if (!profile?.onboarding_completed) {
+          return NextResponse.redirect(new URL(ONBOARDING_PATH, request.url));
+        }
       }
     }
+  }
+
+  if (!code) {
+    const fallbackUrl = new URL(LOGIN_PATH, request.url);
+    fallbackUrl.searchParams.set("next", next);
+    return NextResponse.redirect(fallbackUrl);
   }
 
   return NextResponse.redirect(new URL(next, request.url));

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
+import { consumeAuthHash, routeAuthenticatedUser } from "@/lib/auth/client-auth-flow";
 import { APP_HOME, ONBOARDING_PATH } from "@/lib/auth/paths";
 import { createClient } from "@/lib/supabase/browser";
 
@@ -17,7 +18,7 @@ type AuthFormProps = {
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(searchParams.get("error"));
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -28,47 +29,45 @@ export function AuthForm({ mode }: AuthFormProps) {
     // If we land on the auth page but already have a session (e.g. from an invite/magic link redirect)
     // auto-route the user to the correct destination.
     const supabase = createClient();
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        supabase
-          .from("users")
-          .select("onboarding_completed")
-          .eq("id", session.user.id)
-          .maybeSingle()
-          .then(({ data }) => {
-            if (data && !data.onboarding_completed) {
-              router.replace(`/auth/reset-password?next=${nextPath}`);
-            } else {
-              router.replace(nextPath);
-            }
+    const navigate = (path: string) => router.replace(path);
+
+    consumeAuthHash(supabase)
+      .then((result) => {
+        if (result?.session) {
+          return routeAuthenticatedUser(supabase, result.session, navigate, {
+            nextPath,
+            type: result.type
           });
-      }
-    });
+        }
+
+        return supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session) {
+            return routeAuthenticatedUser(supabase, session, navigate, { nextPath });
+          }
+
+          return null;
+        });
+      })
+      .catch((authError) => {
+        setError(
+          authError instanceof Error
+            ? authError.message
+            : "Unable to validate your invite link. Please request a new invite."
+        );
+      });
 
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && (event === "SIGNED_IN" || event === "PASSWORD_RECOVERY")) {
-        supabase
-          .from("users")
-          .select("onboarding_completed")
-          .eq("id", session.user.id)
-          .maybeSingle()
-          .then(({ data }) => {
-            if (data && !data.onboarding_completed) {
-              router.replace(`/auth/reset-password?next=${nextPath}`);
-            } else {
-              router.replace(nextPath);
-            }
-          });
+        routeAuthenticatedUser(supabase, session, navigate, { nextPath });
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [router, searchParams, nextPath]);
+  }, [router, nextPath]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -92,7 +91,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             data: {
               full_name: fullName
             },
-            emailRedirectTo: `${window.location.origin}/auth/callback?next=${ONBOARDING_PATH}`
+            emailRedirectTo: `${window.location.origin}/auth/callback?type=signup&next=${ONBOARDING_PATH}`
           }
         });
 
@@ -121,7 +120,18 @@ export function AuthForm({ mode }: AuthFormProps) {
         return;
       }
 
-      router.replace(nextPath);
+      const {
+        data: { session }
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        await routeAuthenticatedUser(supabase, session, (path) => router.replace(path), {
+          nextPath
+        });
+      } else {
+        router.replace(nextPath);
+      }
+
       router.refresh();
     } catch (authError) {
       setError(
@@ -359,7 +369,7 @@ export function ForgotPasswordForm() {
             Reset your account password and continue managing your gym.
           </p>
           <p className="mt-4 text-base leading-7 text-[var(--muted)]">
-            Enter the email address you used to register, and we’ll send you a secure reset link.
+            Enter the email address you used to register, and we&apos;ll send you a secure reset link.
           </p>
         </div>
       </section>
@@ -455,15 +465,32 @@ export function ResetPasswordForm() {
 
     const supabase = createClient();
 
-    // Check if a valid session is already present (from Invite link or Magic link)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setIsReady(true);
+    // Check if a valid session is already present or encoded in the invite/reset link.
+    consumeAuthHash(supabase)
+      .then((result) => {
+        if (result?.session) {
+          setIsReady(true);
+          setLoading(false);
+          return;
+        }
+
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session) {
+            setIsReady(true);
+            setLoading(false);
+          } else {
+            setLoading(false);
+          }
+        });
+      })
+      .catch((authError) => {
+        setError(
+          authError instanceof Error
+            ? authError.message
+            : "Unable to validate your secure link. Please request a new one."
+        );
         setLoading(false);
-      } else {
-        setLoading(false);
-      }
-    });
+      });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {

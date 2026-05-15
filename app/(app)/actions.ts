@@ -17,6 +17,16 @@ function numberValue(formData: FormData, key: string, fallback = 0) {
   return Number(raw);
 }
 
+function percentValue(formData: FormData, key: string, fallback = 0) {
+  const value = numberValue(formData, key, fallback);
+
+  if (!Number.isFinite(value) || value < 0 || value > 100) {
+    throw new Error("Discount must be between 0 and 100 percent.");
+  }
+
+  return value;
+}
+
 function dateValue(formData: FormData, key: string) {
   return String(formData.get(key) ?? new Date().toISOString().slice(0, 10));
 }
@@ -135,6 +145,9 @@ export async function createMemberAction(formData: FormData) {
       .toISOString()
       .slice(0, 10);
     const initialPayment = numberValue(formData, "initial_payment", 0);
+    const baseAmount = Number(plan.price);
+    const discountPercent = percentValue(formData, "discount_amount", 0);
+    const discountAmount = (baseAmount / 100) * discountPercent;
 
     const { data: subscription, error: subscriptionError } = await supabase
       .from("subscriptions")
@@ -144,8 +157,8 @@ export async function createMemberAction(formData: FormData) {
         plan_id: planId,
         start_date: startDate,
         end_date: endDate,
-        base_amount: Number(plan.price),
-        discount_amount: numberValue(formData, "discount_amount", 0),
+        base_amount: baseAmount,
+        discount_amount: discountAmount,
         amount_paid: 0
       })
       .select("id")

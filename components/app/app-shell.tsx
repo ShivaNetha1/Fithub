@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Activity,
   BarChart3,
@@ -6,11 +8,14 @@ import {
   Dumbbell,
   LayoutDashboard,
   LogOut,
+  Menu,
   Settings,
   Users,
-  WalletCards
+  WalletCards,
+  X
 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -29,8 +34,11 @@ const navItems = [
 ];
 
 export function AppShell({ children, ownerName, gymName }: AppShellProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-[var(--background)]">
+      {/* Desktop Sidebar (hidden on small/medium screens) */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-[var(--border)] bg-[var(--panel)] lg:block">
         <div className="flex h-full flex-col">
           <div className="border-b border-[var(--border)] px-5 py-5">
@@ -63,6 +71,83 @@ export function AppShell({ children, ownerName, gymName }: AppShellProps) {
                   className="flex h-10 items-center justify-between gap-3 rounded-md px-3 text-sm font-medium text-[var(--muted)] opacity-70"
                 >
                   <span className="flex items-center gap-3">
+                     <Icon size={18} aria-hidden="true" />
+                     {item.label}
+                  </span>
+                  <span className="text-xs">Soon</span>
+                </div>
+              );
+            })}
+          </nav>
+
+          <div className="border-t border-[var(--border)] p-4">
+            <form action="/auth/logout" method="post">
+              <button className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--panel-strong)] hover:text-[var(--foreground)]">
+                <LogOut size={18} aria-hidden="true" />
+                Logout
+              </button>
+            </form>
+          </div>
+        </div>
+      </aside>
+
+      {/* Mobile Sidebar Overlay (Backdrop) */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-xs transition-opacity lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Sidebar Slide-Over Drawer */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-66 border-r border-[var(--border)] bg-[var(--panel)] shadow-xl transition-transform duration-300 ease-in-out lg:hidden ${
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-5">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-3"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <span className="flex size-10 items-center justify-center rounded-md bg-[var(--primary)] text-white">
+                <Dumbbell size={22} aria-hidden="true" />
+              </span>
+              <span>
+                <span className="block font-semibold">Fithub</span>
+                <span className="block text-xs text-[var(--muted)]">Owner console</span>
+              </span>
+            </Link>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="inline-flex size-9 items-center justify-center rounded-md border border-[var(--border)] hover:bg-[var(--panel-strong)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+              aria-label="Close menu"
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </div>
+
+          <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return item.enabled ? (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--panel-strong)] hover:text-[var(--foreground)]"
+                >
+                  <Icon size={18} aria-hidden="true" />
+                  {item.label}
+                </Link>
+              ) : (
+                <div
+                  key={item.href}
+                  className="flex h-10 items-center justify-between gap-3 rounded-md px-3 text-sm font-medium text-[var(--muted)] opacity-70"
+                >
+                  <span className="flex items-center gap-3">
                     <Icon size={18} aria-hidden="true" />
                     {item.label}
                   </span>
@@ -83,12 +168,23 @@ export function AppShell({ children, ownerName, gymName }: AppShellProps) {
         </div>
       </aside>
 
+      {/* Main Content Area */}
       <div className="lg:pl-64">
         <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--panel)]/95 backdrop-blur">
           <div className="flex min-h-16 items-center justify-between gap-4 px-5 lg:px-8">
-            <div>
-              <p className="text-sm text-[var(--muted)]">Welcome, {ownerName}</p>
-              <p className="font-semibold">{gymName ?? "Set up your first gym"}</p>
+            <div className="flex items-center gap-3">
+              {/* Mobile hamburger menu toggle */}
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="inline-flex size-9 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--panel)] text-[var(--muted)] hover:bg-[var(--panel-strong)] hover:text-[var(--foreground)] transition-colors lg:hidden"
+                aria-label="Open menu"
+              >
+                <Menu size={18} aria-hidden="true" />
+              </button>
+              <div>
+                <p className="text-xs text-[var(--muted)] sm:text-sm">Welcome, {ownerName}</p>
+                <p className="text-sm font-semibold sm:text-base">{gymName ?? "Set up your first gym"}</p>
+              </div>
             </div>
             <div className="hidden items-center gap-2 rounded-md border border-[var(--border)] px-3 py-2 text-sm text-[var(--muted)] sm:flex">
               <Activity size={16} aria-hidden="true" />
@@ -97,7 +193,7 @@ export function AppShell({ children, ownerName, gymName }: AppShellProps) {
           </div>
         </header>
 
-        <main className="px-5 py-6 lg:px-8">{children}</main>
+        <main className="px-4 py-6 sm:px-6 lg:px-8">{children}</main>
       </div>
     </div>
   );

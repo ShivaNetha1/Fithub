@@ -64,7 +64,7 @@ export default async function DashboardPage() {
         </section>
       ) : null}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard icon={Users} label="Total members" value={String(summary?.total_members ?? 0)} />
         <MetricCard icon={Dumbbell} label="Active members" value={String(summary?.active_members ?? 0)} />
         <MetricCard
@@ -75,7 +75,7 @@ export default async function DashboardPage() {
         <MetricCard icon={CalendarCheck} label="Today attendance" value={String(summary?.today_attendance ?? 0)} />
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[1fr_0.8fr]">
+      <section className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="rounded-md border border-[var(--border)] bg-[var(--panel)] p-5">
           <div className="flex items-center justify-between gap-4">
             <div>

@@ -17,7 +17,7 @@ export default async function PaymentsPage() {
 
   return (
     <WorkspaceShell ownerName={user.email ?? "Owner"} gym={gym}>
-      <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
+      <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
         <section className="rounded-md border border-[var(--border)] bg-[var(--panel)] p-5">
           <h1 className="text-xl font-semibold">Record payment</h1>
           <form action={recordPaymentAction} className="mt-5 space-y-4">

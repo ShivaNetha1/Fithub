@@ -16,7 +16,7 @@ export default async function PlansPage() {
 
   return (
     <WorkspaceShell ownerName={user.email ?? "Owner"} gym={gym}>
-      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <section className="rounded-md border border-[var(--border)] bg-[var(--panel)] p-5">
           <h1 className="text-xl font-semibold">Create membership plan</h1>
           <form action={createPlanAction} className="mt-5 space-y-4">

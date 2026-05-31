@@ -22,11 +22,12 @@ export async function GET(request: NextRequest) {
 
   const monthStart = startOfMonth(new Date());
   const sixMonthsAgo = startOfMonth(subMonths(monthStart, 5));
+  const today = isoDate(new Date());
 
   const [memberStatus, payments, attendance] = await Promise.all([
     context.supabase
       .from("member_membership_status")
-      .select("computed_subscription_status")
+      .select("account_status, end_date")
       .eq("gym_id", gymId),
     context.supabase
       .from("payments")
@@ -45,11 +46,9 @@ export async function GET(request: NextRequest) {
   if (payments.error) return fail("INTERNAL_ERROR", payments.error.message, 500);
   if (attendance.error) return fail("INTERNAL_ERROR", attendance.error.message, 500);
 
-  const active = memberStatus.data.filter(
-    (row) => row.computed_subscription_status === "active"
-  ).length;
+  const active = memberStatus.data.filter((row) => row.account_status === "active").length;
   const expired = memberStatus.data.filter(
-    (row) => row.computed_subscription_status === "expired"
+    (row) => row.account_status !== "active" || (row.end_date ? row.end_date < today : false)
   ).length;
 
   const revenueByMonth = new Map<string, number>();

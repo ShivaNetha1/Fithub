@@ -15,13 +15,19 @@ import {
   X
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 
 type AppShellProps = {
   children: React.ReactNode;
   ownerName: string;
   gymName?: string;
 };
+
+function confirmLogout(event: FormEvent<HTMLFormElement>) {
+  if (!window.confirm("Are you sure you want to logout?")) {
+    event.preventDefault();
+  }
+}
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, enabled: true },
@@ -81,7 +87,7 @@ export function AppShell({ children, ownerName, gymName }: AppShellProps) {
           </nav>
 
           <div className="border-t border-[var(--border)] p-4">
-            <form action="/auth/logout" method="post">
+            <form action="/auth/logout" method="post" onSubmit={confirmLogout}>
               <button className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--panel-strong)] hover:text-[var(--foreground)]">
                 <LogOut size={18} aria-hidden="true" />
                 Logout
@@ -158,7 +164,7 @@ export function AppShell({ children, ownerName, gymName }: AppShellProps) {
           </nav>
 
           <div className="border-t border-[var(--border)] p-4">
-            <form action="/auth/logout" method="post">
+            <form action="/auth/logout" method="post" onSubmit={confirmLogout}>
               <button className="flex h-10 w-full items-center gap-3 rounded-md px-3 text-sm font-medium text-[var(--muted)] transition hover:bg-[var(--panel-strong)] hover:text-[var(--foreground)]">
                 <LogOut size={18} aria-hidden="true" />
                 Logout

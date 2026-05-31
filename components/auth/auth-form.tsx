@@ -1,6 +1,6 @@
 "use client";
 
-import { Dumbbell, Loader2 } from "lucide-react";
+import { Dumbbell, Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
@@ -21,6 +21,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [error, setError] = useState<string | null>(searchParams.get("error"));
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const isSignup = mode === "signup";
   const nextPath = searchParams.get("next") || APP_HOME;
@@ -250,15 +251,29 @@ export function AuthForm({ mode }: AuthFormProps) {
 
               <label className="block">
                 <span className="mb-1.5 block text-sm font-medium">Password</span>
-                <input
-                  required
-                  minLength={8}
-                  type="password"
-                  name="password"
-                  autoComplete={isSignup ? "new-password" : "current-password"}
-                  className="h-11 w-full rounded-md border border-[var(--border)] bg-white px-3 text-sm outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[#b7e4d5]"
-                  placeholder="Minimum 8 characters"
-                />
+                <div className="relative">
+                  <input
+                    required
+                    minLength={8}
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    autoComplete={isSignup ? "new-password" : "current-password"}
+                    className="h-11 w-full rounded-md border border-[var(--border)] bg-white px-3 pr-11 text-sm outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[#b7e4d5]"
+                    placeholder="Minimum 8 characters"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-[var(--muted)] transition hover:bg-[var(--panel-strong)] hover:text-slate-900"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff size={18} aria-hidden="true" />
+                    ) : (
+                      <Eye size={18} aria-hidden="true" />
+                    )}
+                  </button>
+                </div>
               </label>
 
               {error ? (

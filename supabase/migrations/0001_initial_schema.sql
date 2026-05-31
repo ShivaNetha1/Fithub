@@ -536,7 +536,7 @@ select
 from public.gyms
 left join lateral (
   select
-    count(*) filter (where members.account_status = 'active') as total_members,
+    count(*) filter (where members.account_status in ('active', 'inactive')) as total_members,
     count(*) filter (
       where member_status.computed_subscription_status = 'active'
         and members.account_status = 'active'

@@ -526,8 +526,9 @@ with (security_invoker = true)
 as
 select
   gyms.id as gym_id,
-  coalesce(member_counts.total_members, 0)::integer as total_members,
+  (coalesce(member_counts.active_members, 0) + coalesce(member_counts.inactive_members, 0))::integer as total_members,
   coalesce(member_counts.active_members, 0)::integer as active_members,
+  coalesce(member_counts.inactive_members, 0)::integer as inactive_members,
   coalesce(member_counts.expired_members, 0)::integer as expired_members,
   coalesce(member_counts.expiring_soon_members, 0)::integer as expiring_soon_members,
   coalesce(payment_counts.month_revenue, 0)::numeric(12, 2) as month_revenue,
@@ -541,6 +542,7 @@ left join lateral (
       where member_status.computed_subscription_status = 'active'
         and members.account_status = 'active'
     ) as active_members,
+    count(*) filter (where members.account_status = 'inactive') as inactive_members,
     count(*) filter (
       where member_status.computed_subscription_status = 'expired'
         and members.account_status = 'active'

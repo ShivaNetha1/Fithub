@@ -473,6 +473,7 @@ export type Database = {
           gym_id: string;
           total_members: number;
           active_members: number;
+          inactive_members: number;
           expired_members: number;
           expiring_soon_members: number;
           month_revenue: number;

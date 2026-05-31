@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
       gym_id: gymId,
       total_members: 0,
       active_members: 0,
+      inactive_members: 0,
       expired_members: 0,
       expiring_soon_members: 0,
       month_revenue: 0,

@@ -58,7 +58,7 @@ export function HeroParticles() {
         if (dist < 150) {
           const alpha = (1 - dist / 150) * 0.08;
           ctx.beginPath();
-          ctx.strokeStyle = `rgba(28, 217, 138, ${alpha})`;
+          ctx.strokeStyle = `rgba(37, 99, 235, ${alpha})`;
           ctx.lineWidth = 0.5;
           ctx.moveTo(p1.x, p1.y);
           ctx.lineTo(p2.x, p2.y);
@@ -85,8 +85,8 @@ export function HeroParticles() {
 
         // Draw glow
         const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
-        gradient.addColorStop(0, `rgba(28, 217, 138, ${pulseOpacity * 0.5})`);
-        gradient.addColorStop(1, "rgba(28, 217, 138, 0)");
+        gradient.addColorStop(0, `rgba(37, 99, 235, ${pulseOpacity * 0.5})`);
+        gradient.addColorStop(1, "rgba(37, 99, 235, 0)");
         ctx.beginPath();
         ctx.fillStyle = gradient;
         ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
@@ -94,7 +94,7 @@ export function HeroParticles() {
 
         // Draw particle
         ctx.beginPath();
-        ctx.fillStyle = `rgba(28, 217, 138, ${pulseOpacity})`;
+        ctx.fillStyle = `rgba(37, 99, 235, ${pulseOpacity})`;
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
 

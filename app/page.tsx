@@ -49,6 +49,7 @@ export default async function HomePage() {
       {/* ───── HERO ───── */}
       <section className="landing-hero" id="hero">
         <div className="landing-hero__bg">
+          <div className="landing-hero__bg-image" />
           <div className="landing-hero__gradient" />
           <div className="landing-hero__grid" />
           <div className="landing-hero__orb landing-hero__orb--1" />

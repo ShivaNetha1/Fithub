@@ -6,8 +6,8 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  Line,
-  LineChart,
+  Area,
+  AreaChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -39,43 +39,74 @@ export function AnalyticsCharts({ membership, revenue, attendance }: AnalyticsCh
   );
 
   return (
-    <div className="grid gap-5 xl:grid-cols-2">
-      <ChartPanel title="Active vs expired members">
-        <ResponsiveContainer width="100%" height={260}>
-          <PieChart>
-            <Pie data={membership} dataKey="value" nameKey="name" innerRadius={62} outerRadius={92}>
-              <Cell fill="#147d64" />
-              <Cell fill="#c46f2b" />
-            </Pie>
-            <Tooltip />
-          </PieChart>
-        </ResponsiveContainer>
+    <div className="grid gap-6 xl:grid-cols-2">
+      {/* Membership breakdown */}
+      <ChartPanel title="Active vs Expired Members">
+        <div className="flex flex-col sm:flex-row items-center justify-around gap-6 h-[260px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={membership}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={65}
+                outerRadius={95}
+                paddingAngle={4}
+              >
+                <Cell fill="#10b981" /> {/* Emerald Active */}
+                <Cell fill="#ef4444" /> {/* Rose Expired */}
+              </Pie>
+              <Tooltip content={<CustomNumberTooltip />} />
+            </PieChart>
+          </ResponsiveContainer>
+
+          {/* Custom Legends */}
+          <div className="flex sm:flex-col gap-4 self-center sm:self-auto shrink-0 bg-slate-50 p-4 rounded-xl border border-slate-100">
+            {membership.map((item, idx) => (
+              <div key={item.name} className="flex items-center gap-2.5">
+                <span className={`size-3 rounded-full ${idx === 0 ? "bg-emerald-500" : "bg-rose-500"}`} />
+                <div>
+                  <p className="text-xxs font-bold uppercase tracking-wider text-[var(--muted)]">{item.name}</p>
+                  <p className="text-sm font-black text-slate-800">{item.value.toLocaleString("en-IN")} members</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </ChartPanel>
 
-      <ChartPanel title="Revenue trend">
+      {/* Revenue trend */}
+      <ChartPanel title="Monthly Revenue Trend">
         <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={revenue}>
-            <CartesianGrid stroke="#d8ded9" vertical={false} />
-            <XAxis dataKey="month" tickLine={false} axisLine={false} />
-            <YAxis tickLine={false} axisLine={false} />
-            <Tooltip />
-            <Bar dataKey="amount" fill="#147d64" radius={[4, 4, 0, 0]} />
+          <BarChart data={revenue} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+            <defs>
+              <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#2563eb" stopOpacity={0.9}/>
+                <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0.25}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid stroke="#f1f5f9" vertical={false} />
+            <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: "#64748b", fontSize: 11, fontWeight: 500 }} />
+            <YAxis tickLine={false} axisLine={false} tick={{ fill: "#64748b", fontSize: 11, fontWeight: 500 }} />
+            <Tooltip content={<CustomCurrencyTooltip />} />
+            <Bar dataKey="amount" fill="url(#revenueGrad)" radius={[6, 6, 0, 0]} maxBarSize={45} />
           </BarChart>
         </ResponsiveContainer>
       </ChartPanel>
 
+      {/* Attendance trend */}
       <ChartPanel
-        title="Attendance trend"
+        title="Check-in Attendance Trends"
         action={
-          <div className="flex flex-wrap gap-1 rounded-md border border-[var(--border)] p-1">
+          <div className="flex flex-wrap gap-1 rounded-lg border border-[var(--border)] p-1 bg-white">
             {attendancePeriods.map((period) => (
               <button
                 key={period.value}
                 type="button"
                 onClick={() => setAttendancePeriod(period.value)}
-                className={`h-8 rounded px-3 text-xs font-medium transition ${
+                className={`h-8 rounded-md px-3.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${
                   attendancePeriod === period.value
-                    ? "bg-[var(--primary)] text-white"
+                    ? "bg-[var(--primary-glow)] text-[var(--primary)]"
                     : "text-[var(--muted)] hover:bg-[var(--panel-strong)] hover:text-slate-900"
                 }`}
               >
@@ -86,17 +117,59 @@ export function AnalyticsCharts({ membership, revenue, attendance }: AnalyticsCh
         }
       >
         <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={attendanceTrend}>
-            <CartesianGrid stroke="#d8ded9" vertical={false} />
-            <XAxis dataKey="label" tickLine={false} axisLine={false} />
-            <YAxis tickLine={false} axisLine={false} />
-            <Tooltip />
-            <Line type="monotone" dataKey="count" stroke="#c46f2b" strokeWidth={3} dot={false} />
-          </LineChart>
+          <AreaChart data={attendanceTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="attendanceGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid stroke="#f1f5f9" vertical={false} />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#64748b", fontSize: 11, fontWeight: 500 }} />
+            <YAxis tickLine={false} axisLine={false} tick={{ fill: "#64748b", fontSize: 11, fontWeight: 500 }} />
+            <Tooltip content={<CustomNumberTooltip />} />
+            <Area type="monotone" dataKey="count" stroke="#8b5cf6" strokeWidth={3} fill="url(#attendanceGrad)" />
+          </AreaChart>
         </ResponsiveContainer>
       </ChartPanel>
     </div>
   );
+}
+
+type TooltipProps = {
+  active?: boolean;
+  payload?: Array<{ value: number }>;
+  label?: string;
+};
+
+function CustomNumberTooltip({ active, payload, label }: TooltipProps) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-xl border border-slate-800 bg-slate-950/95 p-3 shadow-md text-white text-xs backdrop-blur-xs">
+        <p className="font-bold border-b border-slate-800 pb-1.5 mb-1.5 uppercase tracking-wider text-slate-400">{label}</p>
+        <p className="font-extrabold text-sm text-[var(--primary)]">{payload[0].value.toLocaleString("en-IN")} count</p>
+      </div>
+    );
+  }
+  return null;
+}
+
+function CustomCurrencyTooltip({ active, payload, label }: TooltipProps) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-xl border border-slate-800 bg-slate-950/95 p-3 shadow-md text-white text-xs backdrop-blur-xs">
+        <p className="font-bold border-b border-slate-800 pb-1.5 mb-1.5 uppercase tracking-wider text-slate-400">{label}</p>
+        <p className="font-extrabold text-sm text-[var(--primary)]">
+          {new Intl.NumberFormat("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 0
+          }).format(payload[0].value)}
+        </p>
+      </div>
+    );
+  }
+  return null;
 }
 
 function ChartPanel({
@@ -109,12 +182,12 @@ function ChartPanel({
   action?: React.ReactNode;
 }) {
   return (
-    <section className="rounded-md border border-[var(--border)] bg-[var(--panel)] p-5">
+    <section className="rounded-xl border border-[var(--border)] bg-[var(--panel)] p-6 shadow-2xs">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="font-semibold">{title}</h2>
+        <h2 className="text-lg font-bold tracking-tight text-[var(--foreground)]">{title}</h2>
         {action}
       </div>
-      <div className="mt-4">{children}</div>
+      <div className="mt-6">{children}</div>
     </section>
   );
 }

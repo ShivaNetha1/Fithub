@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Dumbbell, X } from "lucide-react";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -62,6 +63,7 @@ export function LandingNav() {
 
           {/* Desktop actions */}
           <div className="landing-nav__actions">
+            <ThemeToggle />
             <Link href="/auth/login" className="landing-nav__login">
               Log in
             </Link>
@@ -109,6 +111,9 @@ export function LandingNav() {
           </ul>
 
           <div className="mobile-drawer__actions">
+            <div className="flex justify-center mb-2">
+              <ThemeToggle />
+            </div>
             <Link
               href="/auth/login"
               className="landing-nav__login"

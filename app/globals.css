@@ -631,7 +631,7 @@ textarea {
   background-image: url('/gym_hero_bg_light_themed.png');
   background-size: cover;
   background-position: center;
-  opacity: 0.95;
+  opacity: 0.90;
   mix-blend-mode: overlay;
   pointer-events: none;
   transition: opacity 0.3s ease;
@@ -640,7 +640,7 @@ textarea {
 
 .dark .landing-hero__bg-image {
   background-image: url('/gym_hero_bg.png');
-  opacity: 0.55;
+  opacity: 0.50;
 }
 
 .landing-hero__gradient {
